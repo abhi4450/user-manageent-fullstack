@@ -7,6 +7,11 @@ const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = require("twilio")(accountSid, authToken);
 
+function generateAccessToken(userId) {
+  const jwtSecret = process.env.JWT_SECRET;
+  return jwt.sign({ userId }, jwtSecret);
+}
+
 exports.getRegister = async (req, res, next) => {
   try {
     const { name, mobile, email, dob, gender, address, password } = req.body;
@@ -78,5 +83,46 @@ exports.verifyOtp = async (req, res, next) => {
     });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+exports.loginUser = async (req, res, next) => {
+  const { email, password } = req.body;
+  console.log("USER_EMAIL && PASSWORD :", email, password);
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "Invalid Credentials", success: false });
+    }
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) {
+      return res.status(401).json({
+        message: "Email is valid but incorrect password",
+        success: false,
+      });
+    }
+
+    const token = generateAccessToken(user._id);
+
+    return res.status(200).json({
+      message: "User Logged In Successfully.",
+      success: true,
+      token: token,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+exports.getUserProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    res.json(user);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 };

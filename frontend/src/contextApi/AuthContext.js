@@ -20,6 +20,7 @@ export const AuthProvider = (props) => {
   }, []);
 
   const loginHandler = (data) => {
+    console.log("data>>>>>>>>", data);
     if (data.success === true) {
       localStorage.setItem("isLoggedIn", "1");
       localStorage.setItem("token", data.token);
