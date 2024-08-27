@@ -47,7 +47,11 @@ Clone the Repository
   TWILIO_ACCOUNT_SID='YOUR ACCOUNT SID'
   TWILIO_PHONE_NUMBER="..."
   SIB_API_KEY=""
+  <<<<<<< Updated upstream
+  EMAIL_USER='YOUR EMAIL-ID'
+  =======
   ADMIN_USER='YOUR EMAIL-ID'
+  > > > > > > > Stashed changes
 
 ## SetUp frontend
 
@@ -69,7 +73,7 @@ Profile Management: View and update your profile information from the user dashb
 
 ## Signup API
 
-**Endpoint**: POST http://localhost:5000/api/user/signup
+**Endpoint**: POST https://user-management-fullstack.onrender.com/api/user/signup
 
 **Description**: Registers a new user in the system.
 

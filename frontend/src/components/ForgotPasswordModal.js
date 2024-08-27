@@ -21,7 +21,7 @@ const ModalOverlay = (props) => {
 
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/forgot-password",
+        "https://user-management-fullstack.onrender.com/api/forgot-password",
         { email }
       );
       console.log("Password reset email sent:", response.data.message);

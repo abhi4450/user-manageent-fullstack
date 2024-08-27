@@ -26,7 +26,7 @@ exports.handleForgotPassword = async (req, res, next) => {
       await forgotPasswordService.createResetRequest(user._id);
 
     // Building the reset link
-    const resetLink = `http://localhost:5000/api/forgot-password/resetpassword/${forgotPasswordRequest._id}`;
+    const resetLink = `https://user-management-fullstack.onrender.com/api/forgot-password/resetpassword/${forgotPasswordRequest._id}`;
 
     // Sending the reset email using the service function
     await forgotPasswordService.sendPasswordResetEmail(email, resetLink);
@@ -53,7 +53,7 @@ exports.handleResetPassword = async (req, res, next) => {
     }
 
     res.send(`
-      <form action="http://localhost:5000/api/forgot-password/updatepassword/${requestId}" method="POST">
+      <form action="https://user-management-fullstack.onrender.com/api/forgot-password/updatepassword/${requestId}" method="POST">
         <label for="password">Enter a new password:</label>
         <input type="password" name="password" required>
         <button type="submit">Update Password</button>

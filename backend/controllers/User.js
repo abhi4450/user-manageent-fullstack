@@ -103,7 +103,7 @@ exports.loginUser = async (req, res, next) => {
       });
     }
 
-    const token = userService.generateAccessToken(user._id);
+    const token = generateAccessToken(user._id);
 
     return res.status(200).json({
       message: "User Logged In Successfully.",

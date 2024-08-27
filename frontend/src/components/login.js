@@ -29,7 +29,7 @@ const Login = () => {
     setError("");
 
     try {
-      let response = await axios.post("http://localhost:5000/api/user/login", {
+      let response = await axios.post("https://user-management-fullstack.onrender.com/api/user/login", {
         email,
         password,
       });

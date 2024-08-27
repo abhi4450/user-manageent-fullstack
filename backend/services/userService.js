@@ -100,16 +100,6 @@ const comparePassword = async (inputPassword, userPassword) => {
   }
 };
 
-//To Generate JWT token
-
-const generateAccessToken = (userId) => {
-  try {
-    return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
-  } catch (error) {
-    throw new Error("Error generating access token");
-  }
-};
-
 //To Find a user by ID
 const findUserById = async (userId) => {
   try {
@@ -152,7 +142,6 @@ module.exports = {
   verifyOtp,
   clearOtp,
   comparePassword,
-  generateAccessToken,
   findUserById,
   updateUserProfile,
 };

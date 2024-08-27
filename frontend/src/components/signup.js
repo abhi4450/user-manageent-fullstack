@@ -42,7 +42,7 @@ const Signup = () => {
   const formSubmitHandler = async (event) => {
     event.preventDefault();
     try {
-      let response = await axios.post("http://localhost:5000/api/user/signup", {
+      let response = await axios.post("https://user-management-fullstack.onrender.com/api/user/signup", {
         name,
         gender,
         email,
@@ -66,7 +66,7 @@ const Signup = () => {
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
     try {
-      let response = await axios.post("http://localhost:5000/api/verify-otp", {
+      let response = await axios.post("https://user-management-fullstack.onrender.com/api/verify-otp", {
         email,
         otp,
       });
