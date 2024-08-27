@@ -1,0 +1,61 @@
+.user-profile {
+  padding: 1rem;
+  max-width: 992px;
+  height: auto;
+  margin: 0 auto;
+  background-color: beige;
+  text-align: center;
+}
+
+.user-profile h2 {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.user-profile p {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+  color: #555;
+}
+
+.update-button,
+.cancel-button {
+  display: inline-block;
+  padding: 10px 15px;
+  margin-top: 1rem;
+  font-size: 1rem;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.update-button:hover,
+.cancel-button:hover {
+  background-color: #0056b3;
+}
+
+.cancel-button {
+  background-color: #6c757d;
+  margin-left: 10px;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.form-group input,select{
+  width: 100%;
+  padding: 0.5rem;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}

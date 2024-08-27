@@ -12,4 +12,9 @@ router.get(
   userAuth.authenticate,
   userController.getUserProfile
 );
+router.put(
+  "/user/update-profile",
+  userAuth.authenticate,
+  userController.updateProfile
+);
 module.exports = router;

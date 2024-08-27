@@ -1,6 +1,6 @@
 import React, { useState, Fragment, useContext } from "react";
 import axios from "axios";
-import classes from "./login.module.css";
+import classes from "./Login.module.css";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../contextApi/AuthContext";
 import { NavLink } from "react-router-dom";
@@ -37,7 +37,7 @@ const Login = () => {
         alert(response.data.message);
         console.log("Response", response.data);
         authCtx.loginHandler(response.data);
-        navigate("/user-profile");
+        navigate("/user-dashboard");
       }
     } catch (error) {
       if (error.response.status === 401) {
@@ -87,9 +87,7 @@ const Login = () => {
               required
             />
           </div>
-          <NavLink onClick={showModalHandler}>
-            Forgot Password?
-          </NavLink>
+          <NavLink onClick={showModalHandler}>Forgot Password?</NavLink>
 
           <div className={classes.formActions}>
             <button type="submit">Login</button>

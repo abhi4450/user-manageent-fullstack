@@ -1,7 +1,7 @@
 import React, { useState, Fragment } from "react";
 import axios from "axios";
 import { NavLink, useNavigate } from "react-router-dom";
-import classes from "./signup.module.css";
+import classes from "./Signup.module.css";
 
 const Signup = () => {
   const [name, setName] = useState("");

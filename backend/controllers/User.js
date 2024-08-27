@@ -126,3 +126,26 @@ exports.getUserProfile = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
+exports.updateProfile = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const { name, gender, address, email, dob, mobile } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    user.name = name;
+    user.gender = gender;
+    user.address = address;
+    user.email = email;
+    user.dob = dob;
+    user.mobile = mobile;
+    const updatedUser = await user.save();
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.log("Error Updating the user-profile", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
