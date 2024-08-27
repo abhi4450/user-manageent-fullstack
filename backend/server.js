@@ -15,8 +15,10 @@ app.use(cors(corsOptions));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 const userRoutes = require("./routes/User");
+const forgotPasswordRequestRoutes = require("./routes/ForgotPasswordRequest");
 
 app.use("/api", userRoutes);
+app.use("/api", forgotPasswordRequestRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI)

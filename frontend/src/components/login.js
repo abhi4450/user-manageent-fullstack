@@ -4,11 +4,13 @@ import classes from "./login.module.css";
 import { useNavigate } from "react-router-dom";
 import AuthContext from "../contextApi/AuthContext";
 import { NavLink } from "react-router-dom";
+import ForgotPasswordModal from "./ForgotPasswordModal";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
   const authCtx = useContext(AuthContext);
 
@@ -50,6 +52,13 @@ const Login = () => {
     setPassword("");
   };
 
+  const showModalHandler = () => {
+    setShowModal(true);
+  };
+  const closeModalHandler = () => {
+    setShowModal(false);
+  };
+
   return (
     <Fragment>
       <div className={classes.formContainer}>
@@ -78,6 +87,10 @@ const Login = () => {
               required
             />
           </div>
+          <NavLink onClick={showModalHandler}>
+            Forgot Password?
+          </NavLink>
+
           <div className={classes.formActions}>
             <button type="submit">Login</button>
           </div>
@@ -89,6 +102,7 @@ const Login = () => {
           </p>
           {error && <p className={classes.errorMessage}>{error}</p>}
         </form>
+        {showModal && <ForgotPasswordModal onClose={closeModalHandler} />}
       </div>
     </Fragment>
   );
