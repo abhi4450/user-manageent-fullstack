@@ -6,7 +6,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 const corsOptions = {
-  origin: "http://localhost:3000",
+  origin: "*",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   credentials: true,
 };
@@ -28,5 +28,5 @@ mongoose
     });
   })
   .catch((err) => {
-    console.log("error connecting to database",err);
+    console.log("error connecting to database", err);
   });
