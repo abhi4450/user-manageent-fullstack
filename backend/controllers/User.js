@@ -1,11 +1,8 @@
-const User = require("../models/User");
+const User = require("../models/User.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { sendOTPEmail } = require("../services/emailService");
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const client = require("twilio")(accountSid, authToken);
+const userService = require("../services/userService");
 
 function generateAccessToken(userId) {
   const jwtSecret = process.env.JWT_SECRET;
@@ -16,15 +13,21 @@ exports.getRegister = async (req, res, next) => {
   try {
     const { name, mobile, email, dob, gender, address, password } = req.body;
     console.log("USER INFO: ", req.body);
-    const existingUser = await User.findOne({ email });
+
+    // Checking if user already exists
+    const existingUser = await userService.findUserByEmail(email);
     if (existingUser) {
       return res.status(400).json({ message: "Email already exists" });
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = Date.now() + 15 * 60 * 1000;
 
-    const newUser = new User({
+    // Hashing the password
+    const hashedPassword = await userService.hashPassword(password);
+
+    // Generating OTP and its expiration time
+    const { otp, otpExpires } = userService.generateOtp();
+
+    // Creating new user
+    const newUser = await userService.createUser({
       name,
       mobile,
       email,
@@ -35,26 +38,16 @@ exports.getRegister = async (req, res, next) => {
       otp,
       otpExpires,
     });
-    await newUser.save();
-    await client.messages.create({
-      body: `Your OTP is ${otp}`,
-      to: `'${mobile}'`,
-      from: process.env.TWILIO_PHONE_NUMBER,
-    });
 
-    const sender = {
-      email: process.env.EMAIL_USER,
-      name: "Ahishek Kumar Gupta",
-    };
-    const receivers = [{ email: email }];
+    // Sending OTP via SMS
+    await userService.sendOtpViaSms(mobile, otp);
 
-    const subject = "OTP verification";
-    const textContent = `Enter the received OTP ${otp} to confirm your singup`;
-    const htmlContent = `<h1>OTP verification</h1><p>kindly enter the ${otp} to signup successfully.</p>`;
-    await sendOTPEmail(sender, receivers, subject, textContent, htmlContent);
+    // Sending OTP via Email
+    await userService.sendOtpViaEmail(email, otp);
+
     res.status(201).json({
       message:
-        "Your details are saved.Otp sent to your registered mobile number.Kindly enter the otp to confirm your signup.",
+        "Your details are saved. OTP sent to your registered mobile number. Kindly enter the OTP to confirm your signup.",
       user: newUser,
     });
   } catch (err) {
@@ -62,24 +55,25 @@ exports.getRegister = async (req, res, next) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
 exports.verifyOtp = async (req, res, next) => {
   const { email, otp } = req.body;
   try {
-    const user = await User.findOne({ email });
+    const user = await userService.findUserByEmail(email);
     if (!user) {
       return res.status(400).json({ message: "User not foun" });
     }
 
-    if (user.otp !== otp || Date.now() > user.otpExpires) {
+    // Verifying the OTP
+    const isOtpValid = userService.verifyOtp(user, otp);
+    if (!isOtpValid) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
-    user.otp = undefined;
-    user.otpExpires = undefined;
-    await user.save();
+    // Clearing OTP and expiry
+    await userService.clearOtp(user);
+
     res.json({
-      message: "Signup successful.You can now login to your account",
+      message: "Signup successful. You can now log in to your account",
     });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
@@ -89,15 +83,19 @@ exports.verifyOtp = async (req, res, next) => {
 exports.loginUser = async (req, res, next) => {
   const { email, password } = req.body;
   console.log("USER_EMAIL && PASSWORD :", email, password);
+
   try {
-    const user = await User.findOne({ email });
+    const user = await userService.findUserByEmail(email);
     if (!user) {
       return res
         .status(404)
         .json({ message: "Invalid Credentials", success: false });
     }
-    const passwordMatch = await bcrypt.compare(password, user.password);
 
+    const passwordMatch = await userService.comparePassword(
+      password,
+      user.password
+    );
     if (!passwordMatch) {
       return res.status(401).json({
         message: "Email is valid but incorrect password",
@@ -105,7 +103,7 @@ exports.loginUser = async (req, res, next) => {
       });
     }
 
-    const token = generateAccessToken(user._id);
+    const token = userService.generateAccessToken(user._id);
 
     return res.status(200).json({
       message: "User Logged In Successfully.",
@@ -120,7 +118,7 @@ exports.loginUser = async (req, res, next) => {
 
 exports.getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await userService.findUserById(req.user._id);
     res.json(user);
   } catch (error) {
     res.status(400).json({ error: error.message });
@@ -130,22 +128,12 @@ exports.getUserProfile = async (req, res) => {
 exports.updateProfile = async (req, res, next) => {
   try {
     const userId = req.user._id;
-    const { name, gender, address, email, dob, mobile } = req.body;
+    const updateData = req.body;
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    user.name = name;
-    user.gender = gender;
-    user.address = address;
-    user.email = email;
-    user.dob = dob;
-    user.mobile = mobile;
-    const updatedUser = await user.save();
+    const updatedUser = await userService.updateUserProfile(userId, updateData);
     res.status(200).json(updatedUser);
   } catch (error) {
-    console.log("Error Updating the user-profile", error);
+    console.log("Error Updating the user profile:", error);
     res.status(500).json({ message: "Server error" });
   }
 };

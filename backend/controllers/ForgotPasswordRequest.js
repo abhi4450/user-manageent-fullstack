@@ -1,26 +1,19 @@
-const User = require("../models/User");
-const bcrypt = require("bcrypt");
-const ForgotPasswordRequest = require("../models/ForgotPasswordRequest");
-
-const { sendOTPEmail: sendResetEmail } = require("../services/emailService");
+const forgotPasswordService = require("../services/forgotPasswordService");
 
 exports.handleForgotPassword = async (req, res, next) => {
   const { email } = req.body;
 
   try {
     // Checking if user exists
-    const user = await User.findOne({ email });
-
+    const user = await forgotPasswordService.findUserByEmail(email);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     // Checking if there is already an active request for the user
-    const existingRequest = await ForgotPasswordRequest.findOne({
-      userId: user._id,
-      isactive: true,
-    });
-
+    const existingRequest = await forgotPasswordService.findActiveResetRequest(
+      user._id
+    );
     if (existingRequest) {
       return res.status(400).json({
         message:
@@ -29,29 +22,14 @@ exports.handleForgotPassword = async (req, res, next) => {
     }
 
     // Creating a new forgot password request
-    const forgotPasswordRequest = new ForgotPasswordRequest({
-      userId: user._id,
-      isactive: true,
-    });
-
-    await forgotPasswordRequest.save();
+    const forgotPasswordRequest =
+      await forgotPasswordService.createResetRequest(user._id);
 
     // Building the reset link
     const resetLink = `http://localhost:5000/api/forgot-password/resetpassword/${forgotPasswordRequest._id}`;
 
-    // Sending the reset email
-    const sender = {
-      email: process.env.EMAIL_USER,
-      name: "Abhishek Kumar Gupta",
-    };
-
-    const receivers = [{ email: email }];
-
-    const subject = "Password Reset";
-    const textContent = `Click the link below to reset your password: ${resetLink}`;
-    const htmlContent = `<h1>Password Reset</h1><p>Click the link below to reset your password:</p><p><a href="${resetLink}">Reset Password</a></p>`;
-
-    await sendResetEmail(sender, receivers, subject, textContent, htmlContent);
+    // Sending the reset email using the service function
+    await forgotPasswordService.sendPasswordResetEmail(email, resetLink);
 
     res.status(200).json({
       message:
@@ -63,16 +41,13 @@ exports.handleForgotPassword = async (req, res, next) => {
   }
 };
 
-exports.handleresetPassword = async (req, res, next) => {
+exports.handleResetPassword = async (req, res, next) => {
   try {
     const requestId = req.params.requestId;
 
-    // Checking if the request exists and is active
-    const resetRequest = await ForgotPasswordRequest.findOne({
-      _id: requestId,
-      isactive: true,
-    });
-
+    const resetRequest = await forgotPasswordService.findResetRequestById(
+      requestId
+    );
     if (!resetRequest) {
       return res.status(404).json({ message: "Invalid or expired reset link" });
     }
@@ -95,29 +70,18 @@ exports.updatePassword = async (req, res, next) => {
     const requestId = req.params.requestId;
     const newPassword = req.body.password;
 
-    // Checking if the request exists and is active
-    const resetRequest = await ForgotPasswordRequest.findOne({
-      _id: requestId,
-      isactive: true,
-    });
-
+    const resetRequest = await forgotPasswordService.findResetRequestById(
+      requestId
+    );
     if (!resetRequest) {
       return res.status(404).json({ message: "Invalid or expired reset link" });
     }
 
-    // Updating the user's password
-    const user = await User.findById(resetRequest.userId);
-
-    // Hashing the new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Updating the user's password in the database
-    user.password = hashedPassword;
-    await user.save();
-
-    // Deactivating the reset request
-    resetRequest.isactive = false;
-    await resetRequest.save();
+    await forgotPasswordService.updateUserPassword(
+      resetRequest.userId,
+      newPassword
+    );
+    await forgotPasswordService.deactivateResetRequest(requestId);
 
     return res.status(200).send("<h1>Password updated successfully</h1>");
   } catch (error) {
